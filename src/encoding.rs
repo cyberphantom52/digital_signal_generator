@@ -41,8 +41,8 @@ pub enum Encodings {
     ManchesterDifferential,
     AMI,
 }
-
-pub enum _Scramblings {
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Scramblings {
     B8ZS,
     HDB3,
 }

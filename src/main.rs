@@ -10,11 +10,12 @@ fn main() {
     nannou::app(model).update(update).run();
 }
 
-struct Model {
+pub struct Model {
     ui: Egui,
     binary_stream: String,
     encoding: Encodings,
     scrambling: bool,
+    scrambling_type: Scramblings,
 }
 
 fn model(app: &App) -> Model {
@@ -36,6 +37,7 @@ fn model(app: &App) -> Model {
         binary_stream: "0".to_string(),
         encoding: Encodings::NRZL,
         scrambling: false,
+        scrambling_type: Scramblings::B8ZS,
     }
 }
 
@@ -86,6 +88,28 @@ fn update(_app: &App, model: &mut Model, update: Update) {
                     ui.label("Scrambling:");
                     ui.checkbox(&mut model.scrambling, "");
                 });
+
+                if model.scrambling == true {
+                    let current_scrambling = model.scrambling_type.clone();
+                    ui.vertical(|ui| {
+                        ui.label("Scrambling:");
+                        ui.add_space(5.0);
+                        egui::ComboBox::from_label(" ")
+                            .selected_text(format!("{current_scrambling:?}"))
+                            .show_ui(ui, |ui| {
+                                ui.selectable_value(
+                                    &mut model.scrambling_type,
+                                    Scramblings::B8ZS,
+                                    "B8ZS",
+                                );
+                                ui.selectable_value(
+                                    &mut model.scrambling_type,
+                                    Scramblings::HDB3,
+                                    "HDB3",
+                                );
+                            });
+                    });
+                }
             }
         });
 }
