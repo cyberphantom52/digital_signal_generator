@@ -1,5 +1,5 @@
 use crate::Model;
-use nannou::prelude::{pt2, App, Draw, RED, STEELBLUE};
+use nannou::prelude::{pt2, App, Draw, STEELBLUE};
 
 pub trait Encode {
     fn draw_encoding(&self, model: &Model, app: &App, draw: &Draw) {
@@ -31,16 +31,7 @@ pub trait Encode {
         }
     }
 
-    fn encode(&self, data: &str) -> Vec<i8> {
-        let mut result = Vec::new();
-        for char in data.chars().into_iter() {
-            result.push(
-                char.to_string().parse::<i8>()
-                    .expect("Error parsing binary stream"),
-            );
-        }
-        result
-    }
+    fn encode(&self, data: &str) -> Vec<i8>;
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -58,7 +49,19 @@ pub struct Manchester;
 pub struct ManchesterDifferential;
 pub struct AMI;
 
-impl Encode for NRZL {}
+impl Encode for NRZL {
+    fn encode(&self, data: &str) -> Vec<i8> {
+        let mut result = Vec::new();
+        for char in data.chars().into_iter() {
+            result.push(
+                char.to_string()
+                    .parse::<i8>()
+                    .expect("Error parsing binary stream"),
+            );
+        }
+        result
+    }
+}
 
 impl Encode for NRZI {
     fn encode(&self, data: &str) -> Vec<i8> {
@@ -126,7 +129,7 @@ impl Encode for AMI {
                     toggle *= -1;
                 }
                 _ => {}
-            }            
+            }
         }
         encoded_data
     }
