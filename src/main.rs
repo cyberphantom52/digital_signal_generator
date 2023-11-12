@@ -1,12 +1,15 @@
 mod encoding;
+mod modulation;
 mod scramble;
 mod utils;
 
 use crate::encoding::*;
+use crate::modulation::*;
 use crate::scramble::Scrambling;
+use modulation::Modulation;
 use nannou::prelude::*;
 use nannou_egui::{self, egui, Egui};
-use utils::draw_grid;
+use utils::{draw_grid, AnalogSignal, SignalType};
 
 fn main() {
     nannou::app(model).update(update).run();
@@ -14,7 +17,10 @@ fn main() {
 
 pub struct Model {
     ui: Egui,
+    signal_type: SignalType,
     binary_stream: String,
+    analog_signal: AnalogSignal,
+    modulation: Modulation,
     encoding: Encoding,
     scrambling: Scrambling,
 }
@@ -35,7 +41,10 @@ fn model(app: &App) -> Model {
 
     Model {
         ui,
+        signal_type: SignalType::Digital,
         binary_stream: "0".to_string(),
+        analog_signal: AnalogSignal::Sine,
+        modulation: Modulation::DM,
         encoding: Encoding::NRZL,
         scrambling: Scrambling::None,
     }
@@ -54,60 +63,85 @@ fn update(_app: &App, model: &mut Model, update: Update) {
     egui::Window::new("Simulator Control Panel")
         .collapsible(false)
         .show(&ctx, |ui| {
-            ui.vertical(|ui| {
-                ui.label("Binary Message:");
-                ui.add_space(5.0);
-                ui.text_edit_singleline(&mut model.binary_stream);
+            ui.horizontal(|ui| {
+                ui.selectable_value(&mut model.signal_type, SignalType::Digital, "Digital");
+                ui.selectable_value(&mut model.signal_type, SignalType::Analog, "Analog");
             });
 
-            let current_encoding = model.encoding;
-            ui.vertical(|ui| {
-                ui.label("Encoding:");
-                ui.add_space(5.0);
-                egui::ComboBox::from_label("")
-                    .selected_text(format!("{current_encoding:?}"))
-                    .show_ui(ui, |ui| {
-                        ui.selectable_value(&mut model.encoding, Encoding::NRZL, "NRZ-L");
-                        ui.selectable_value(&mut model.encoding, Encoding::NRZI, "NRZ-I");
-                        ui.selectable_value(
-                            &mut model.encoding,
-                            Encoding::Manchester,
-                            "Manchester",
-                        );
-                        ui.selectable_value(
-                            &mut model.encoding,
-                            Encoding::ManchesterDifferential,
-                            "Differential Manchester",
-                        );
-                        ui.selectable_value(&mut model.encoding, Encoding::AMI, "AMI");
-                    });
-            });
-
-            if model.encoding == Encoding::AMI {
-                let current_scrambling = model.scrambling;
+            if model.signal_type == SignalType::Digital {
                 ui.vertical(|ui| {
-                    ui.label("Scrambling:");
+                    ui.label("Binary Message:");
                     ui.add_space(5.0);
-                    egui::ComboBox::from_label(" ")
-                        .selected_text(format!("{current_scrambling:?}"))
+                    ui.text_edit_singleline(&mut model.binary_stream);
+                });
+
+                let current_encoding = model.encoding;
+                ui.vertical(|ui| {
+                    ui.label("Encoding:");
+                    ui.add_space(5.0);
+                    egui::ComboBox::from_label("")
+                        .selected_text(format!("{current_encoding:?}"))
                         .show_ui(ui, |ui| {
+                            ui.selectable_value(&mut model.encoding, Encoding::NRZL, "NRZ-L");
+                            ui.selectable_value(&mut model.encoding, Encoding::NRZI, "NRZ-I");
                             ui.selectable_value(
-                                &mut model.scrambling,
-                                Scrambling::None,
-                                "None",
+                                &mut model.encoding,
+                                Encoding::Manchester,
+                                "Manchester",
                             );
                             ui.selectable_value(
-                                &mut model.scrambling,
-                                Scrambling::B8ZS,
-                                "B8ZS",
+                                &mut model.encoding,
+                                Encoding::ManchesterDifferential,
+                                "Differential Manchester",
                             );
-                            ui.selectable_value(
-                                &mut model.scrambling,
-                                Scrambling::HDB3,
-                                "HDB3",
-                            );
+                            ui.selectable_value(&mut model.encoding, Encoding::AMI, "AMI");
                         });
                 });
+
+                if model.encoding == Encoding::AMI {
+                    let current_scrambling = model.scrambling;
+                    ui.vertical(|ui| {
+                        ui.label("Scrambling:");
+                        ui.add_space(5.0);
+                        egui::ComboBox::from_label(" ")
+                            .selected_text(format!("{current_scrambling:?}"))
+                            .show_ui(ui, |ui| {
+                                ui.selectable_value(
+                                    &mut model.scrambling,
+                                    Scrambling::None,
+                                    "None",
+                                );
+                                ui.selectable_value(
+                                    &mut model.scrambling,
+                                    Scrambling::B8ZS,
+                                    "B8ZS",
+                                );
+                                ui.selectable_value(
+                                    &mut model.scrambling,
+                                    Scrambling::HDB3,
+                                    "HDB3",
+                                );
+                            });
+                    });
+                }
+            } else {
+                ui.horizontal(|ui| {
+                    ui.radio_value(&mut model.analog_signal, AnalogSignal::Sine, "Sin(x)");
+                    ui.radio_value(
+                        &mut model.analog_signal,
+                        AnalogSignal::SawTooth,
+                        "Saw Tooth",
+                    );
+                });
+
+                ui.add_space(5.0);
+                let current_modulation = model.modulation;
+                egui::ComboBox::from_label("   ")
+                    .selected_text(format!("{current_modulation:?}"))
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(&mut model.modulation, Modulation::PCM, "PCM");
+                        ui.selectable_value(&mut model.modulation, Modulation::DM, "DM");
+                    });
             }
         });
 }
@@ -121,14 +155,21 @@ fn view(app: &App, model: &Model, frame: Frame) {
     draw_grid(&draw, &win, 100.0, 1.0);
     draw_grid(&draw, &win, 25.0, 0.5);
 
-    match model.encoding {
-        Encoding::NRZI => NRZI.draw_encoding(&model, &app, &draw),
-        Encoding::NRZL => NRZL.draw_encoding(&model, &app, &draw),
-        Encoding::Manchester => Manchester.draw_encoding(&model, &app, &draw),
-        Encoding::ManchesterDifferential => {
-            ManchesterDifferential.draw_encoding(&model, &app, &draw)
+    if model.signal_type == SignalType::Digital {
+        match model.encoding {
+            Encoding::NRZI => NRZI.draw_encoding(&model, &app, &draw),
+            Encoding::NRZL => NRZL.draw_encoding(&model, &app, &draw),
+            Encoding::Manchester => Manchester.draw_encoding(&model, &app, &draw),
+            Encoding::ManchesterDifferential => {
+                ManchesterDifferential.draw_encoding(&model, &app, &draw)
+            }
+            Encoding::AMI => AMI.draw_encoding(&model, &app, &draw),
         }
-        Encoding::AMI => AMI.draw_encoding(&model, &app, &draw),
+    } else {
+        match model.modulation {
+            Modulation::PCM => PCM.draw_modulation(&model, &app, &draw),
+            Modulation::DM => DM.draw_modulation(&model, &app, &draw),
+        }
     }
 
     draw.to_frame(app, &frame).unwrap();

@@ -1,6 +1,18 @@
 use nannou::Draw;
 use nannou::prelude::{Rect, pt2, GRAY};
 
+#[derive(PartialEq)]
+pub enum SignalType {
+    Analog,
+    Digital,
+}
+
+#[derive(PartialEq)]
+pub enum AnalogSignal {
+    Sine,
+    SawTooth,
+}
+
 pub fn validate_input(input: &str) -> bool {
     input.chars().into_iter().all(|x| x == '0' || x == '1')
 }
