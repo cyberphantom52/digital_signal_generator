@@ -1,5 +1,18 @@
 use std::vec::Vec;
 
+pub trait Scrambling {
+    fn scramble(&self, binary_stream: &String) -> String {
+        binary_stream.to_string()
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Scramblings {
+    B8ZS,
+    HDB3,
+    None,
+}
+
 pub fn b8zs_encoder(bin_data: &Vec<usize>) -> Vec<i32> {
     let mut encoded_data:Vec<i32> = Vec::new();
     let mut cnt = 0;

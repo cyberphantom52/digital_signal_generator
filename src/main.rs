@@ -3,6 +3,7 @@ mod utils;
 mod scramble;
 
 use crate::encoding::*;
+use crate::scramble::*;
 use nannou::prelude::*;
 use nannou_egui::{self, egui, Egui};
 use utils::draw_grid;
@@ -125,13 +126,11 @@ fn view(app: &App, model: &Model, frame: Frame) {
     draw_grid(&draw, &win, 25.0, 0.5);
 
     match model.encoding {
-        Encodings::NRZI => NRZI.encode(&model, &win, &draw),
-        Encodings::NRZL => NRZL.encode(&model, &win, &draw),
-        Encodings::Manchester => Manchester.encode(&model, &win, &draw),
-        Encodings::ManchesterDifferential => {
-            ManchesterDifferential.encode(&model, &win, &draw)
-        }
-        Encodings::AMI => AMI.encode(&model, &win, &draw),
+        Encodings::NRZI => NRZI.draw_encoding(&model, &app, &draw),
+        Encodings::NRZL => NRZL.draw_encoding(&model, &app, &draw),
+        Encodings::Manchester => Manchester.draw_encoding(&model, &app, &draw),
+        Encodings::ManchesterDifferential => ManchesterDifferential.draw_encoding(&model, &app, &draw),
+        Encodings::AMI => AMI.draw_encoding(&model, &app, &draw),
     }
 
     draw.to_frame(app, &frame).unwrap();
