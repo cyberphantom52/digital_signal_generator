@@ -1,13 +1,13 @@
 use std::vec::Vec;
 
-pub trait Scrambling {
+pub trait Scramble {
     fn scramble(&self, binary_stream: &String) -> String {
         binary_stream.to_string()
     }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Scramblings {
+pub enum Scrambling {
     B8ZS,
     HDB3,
     None,

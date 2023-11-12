@@ -1,7 +1,7 @@
 use crate::Model;
 use nannou::prelude::{pt2, App, Draw, RED, STEELBLUE};
 
-pub trait Encoding {
+pub trait Encode {
     fn draw_encoding(&self, model: &Model, app: &App, draw: &Draw) {
         let window = app.main_window();
         let win = window.rect();
@@ -44,7 +44,7 @@ pub trait Encoding {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub enum Encodings {
+pub enum Encoding {
     NRZL,
     NRZI,
     Manchester,
@@ -58,9 +58,9 @@ pub struct Manchester;
 pub struct ManchesterDifferential;
 pub struct AMI;
 
-impl Encoding for NRZL {}
+impl Encode for NRZL {}
 
-impl Encoding for NRZI {
+impl Encode for NRZI {
     fn encode(&self, data: &str) -> Vec<i8> {
         let mut encoded_data = Vec::new();
         let mut state = 0;
@@ -75,7 +75,7 @@ impl Encoding for NRZI {
     }
 }
 
-impl Encoding for Manchester {
+impl Encode for Manchester {
     fn encode(&self, data: &str) -> Vec<i8> {
         let mut encoded_data = Vec::new();
         for bit in data.chars().into_iter() {
@@ -91,7 +91,7 @@ impl Encoding for Manchester {
     }
 }
 
-impl Encoding for ManchesterDifferential {
+impl Encode for ManchesterDifferential {
     fn encode(&self, data: &str) -> Vec<i8> {
         let mut encoded_data = Vec::new();
         let mut prev = 1;
@@ -114,7 +114,7 @@ impl Encoding for ManchesterDifferential {
     }
 }
 
-impl Encoding for AMI {
+impl Encode for AMI {
     fn encode(&self, data: &str) -> Vec<i8> {
         let mut encoded_data = Vec::new();
         let mut toggle = 1;

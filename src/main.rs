@@ -1,9 +1,9 @@
 mod encoding;
-mod utils;
 mod scramble;
+mod utils;
 
 use crate::encoding::*;
-use crate::scramble::*;
+use crate::scramble::Scrambling;
 use nannou::prelude::*;
 use nannou_egui::{self, egui, Egui};
 use utils::draw_grid;
@@ -15,9 +15,8 @@ fn main() {
 pub struct Model {
     ui: Egui,
     binary_stream: String,
-    encoding: Encodings,
-    scrambling: bool,
-    scrambling_type: Scramblings,
+    encoding: Encoding,
+    scrambling: Scrambling,
 }
 
 fn model(app: &App) -> Model {
@@ -37,9 +36,8 @@ fn model(app: &App) -> Model {
     Model {
         ui,
         binary_stream: "0".to_string(),
-        encoding: Encodings::NRZL,
-        scrambling: false,
-        scrambling_type: Scramblings::B8ZS,
+        encoding: Encoding::NRZL,
+        scrambling: Scrambling::None,
     }
 }
 
@@ -69,49 +67,47 @@ fn update(_app: &App, model: &mut Model, update: Update) {
                 egui::ComboBox::from_label("")
                     .selected_text(format!("{current_encoding:?}"))
                     .show_ui(ui, |ui| {
-                        ui.selectable_value(&mut model.encoding, Encodings::NRZL, "NRZ-L");
-                        ui.selectable_value(&mut model.encoding, Encodings::NRZI, "NRZ-I");
+                        ui.selectable_value(&mut model.encoding, Encoding::NRZL, "NRZ-L");
+                        ui.selectable_value(&mut model.encoding, Encoding::NRZI, "NRZ-I");
                         ui.selectable_value(
                             &mut model.encoding,
-                            Encodings::Manchester,
+                            Encoding::Manchester,
                             "Manchester",
                         );
                         ui.selectable_value(
                             &mut model.encoding,
-                            Encodings::ManchesterDifferential,
+                            Encoding::ManchesterDifferential,
                             "Differential Manchester",
                         );
-                        ui.selectable_value(&mut model.encoding, Encodings::AMI, "AMI");
+                        ui.selectable_value(&mut model.encoding, Encoding::AMI, "AMI");
                     });
             });
 
-            if model.encoding == Encodings::AMI {
-                ui.horizontal(|ui| {
+            if model.encoding == Encoding::AMI {
+                let current_scrambling = model.scrambling;
+                ui.vertical(|ui| {
                     ui.label("Scrambling:");
-                    ui.checkbox(&mut model.scrambling, "");
+                    ui.add_space(5.0);
+                    egui::ComboBox::from_label(" ")
+                        .selected_text(format!("{current_scrambling:?}"))
+                        .show_ui(ui, |ui| {
+                            ui.selectable_value(
+                                &mut model.scrambling,
+                                Scrambling::None,
+                                "None",
+                            );
+                            ui.selectable_value(
+                                &mut model.scrambling,
+                                Scrambling::B8ZS,
+                                "B8ZS",
+                            );
+                            ui.selectable_value(
+                                &mut model.scrambling,
+                                Scrambling::HDB3,
+                                "HDB3",
+                            );
+                        });
                 });
-
-                if model.scrambling == true {
-                    let current_scrambling = model.scrambling_type.clone();
-                    ui.vertical(|ui| {
-                        ui.label("Scrambling:");
-                        ui.add_space(5.0);
-                        egui::ComboBox::from_label(" ")
-                            .selected_text(format!("{current_scrambling:?}"))
-                            .show_ui(ui, |ui| {
-                                ui.selectable_value(
-                                    &mut model.scrambling_type,
-                                    Scramblings::B8ZS,
-                                    "B8ZS",
-                                );
-                                ui.selectable_value(
-                                    &mut model.scrambling_type,
-                                    Scramblings::HDB3,
-                                    "HDB3",
-                                );
-                            });
-                    });
-                }
             }
         });
 }
@@ -126,11 +122,13 @@ fn view(app: &App, model: &Model, frame: Frame) {
     draw_grid(&draw, &win, 25.0, 0.5);
 
     match model.encoding {
-        Encodings::NRZI => NRZI.draw_encoding(&model, &app, &draw),
-        Encodings::NRZL => NRZL.draw_encoding(&model, &app, &draw),
-        Encodings::Manchester => Manchester.draw_encoding(&model, &app, &draw),
-        Encodings::ManchesterDifferential => ManchesterDifferential.draw_encoding(&model, &app, &draw),
-        Encodings::AMI => AMI.draw_encoding(&model, &app, &draw),
+        Encoding::NRZI => NRZI.draw_encoding(&model, &app, &draw),
+        Encoding::NRZL => NRZL.draw_encoding(&model, &app, &draw),
+        Encoding::Manchester => Manchester.draw_encoding(&model, &app, &draw),
+        Encoding::ManchesterDifferential => {
+            ManchesterDifferential.draw_encoding(&model, &app, &draw)
+        }
+        Encoding::AMI => AMI.draw_encoding(&model, &app, &draw),
     }
 
     draw.to_frame(app, &frame).unwrap();
