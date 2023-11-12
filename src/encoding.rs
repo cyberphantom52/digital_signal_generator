@@ -1,7 +1,8 @@
 use nannou::prelude::{pt2, Draw, Rect, STEELBLUE};
-
+use crate::Model;
+use crate::scramble::{b8zs_encoder, hdb3_encoder};
 pub trait Encoding {
-    fn encode(&self, window: &Rect, binary_stream: &String, draw: &Draw);
+    fn encode(&self,model: &Model, window: &Rect, draw: &Draw);
 }
 
 fn encode_helper(window: &Rect, encoded_data: &Vec<usize>, draw: &Draw) {
@@ -66,8 +67,8 @@ fn nrzi_encoder(bin_data: &Vec<usize>) -> Vec<usize> {
 }
 
 impl Encoding for NRZI {
-    fn encode(&self, window: &Rect, binary_stream: &String, draw: &Draw) {
-        let binary_data: Vec<usize> = binary_stream
+    fn encode(&self, model: &Model, window: &Rect, draw: &Draw) {
+        let binary_data: Vec<usize> = model.binary_stream
             .chars()
             .map(|c| c.to_digit(10).unwrap() as usize)
             .collect();
@@ -78,11 +79,11 @@ impl Encoding for NRZI {
 }
 
 impl Encoding for NRZL {
-    fn encode(&self, window: &Rect, binary_stream: &String, draw: &Draw) {
+    fn encode(&self,model: &Model, window: &Rect,draw: &Draw) {
         let width = window.w();
-        let bit_length = width / binary_stream.len() as f32;
+        let bit_length = width / model.binary_stream.len() as f32;
         let mut previous_end = pt2(window.left(), -0.0);
-        for (i, c) in binary_stream.chars().enumerate() {
+        for (i, c) in model.binary_stream.chars().enumerate() {
             let height = if c == '0' { -50.0 } else { 50.0 };
             let start = pt2(window.left() + bit_length * i as f32, height);
             let end = pt2(window.left() + bit_length * (i + 1) as f32, height);
@@ -118,8 +119,8 @@ fn manchester_encoder(bin_data: &Vec<usize>) -> Vec<usize> {
 }
 
 impl Encoding for Manchester {
-    fn encode(&self, window: &Rect, binary_stream: &String, draw: &Draw) {
-        let binary_data: Vec<usize> = binary_stream
+    fn encode(&self,model: &Model, window: &Rect, draw: &Draw) {
+        let binary_data: Vec<usize> = model.binary_stream
             .chars()
             .map(|c| c.to_digit(10).unwrap() as usize)
             .collect();
@@ -147,8 +148,8 @@ fn manchester_differential_encoder(bin_data: &Vec<usize>) -> Vec<usize> {
 }
 
 impl Encoding for ManchesterDifferential {
-    fn encode(&self, window: &Rect, binary_stream: &String, draw: &Draw) {
-        let binary_data: Vec<usize> = binary_stream
+    fn encode(&self,model: &Model, window: &Rect, draw: &Draw) {
+        let binary_data: Vec<usize> = model.binary_stream
             .chars()
             .map(|c| c.to_digit(10).unwrap() as usize)
             .collect();
@@ -174,15 +175,26 @@ fn ami_encoder(bin_data: &Vec<usize>) -> Vec<i32> {
 }
 
 impl Encoding for AMI {
-    fn encode(&self, window: &Rect, binary_stream: &String, draw: &Draw) {
+    fn encode(&self,model: &Model, window: &Rect, draw: &Draw) {
         let width = window.w();
         let mut previous_end = pt2(window.left(), -0.0);
 
-        let binary_data: Vec<usize> = binary_stream
+        let binary_data: Vec<usize> = model.binary_stream
             .chars()
             .map(|c| c.to_digit(10).unwrap() as usize)
             .collect();
-        let encoded_data = ami_encoder(&binary_data);
+        let encoded_data:Vec<i32>;
+        if model.scrambling == true {
+            if model.scrambling_type == Scramblings::B8ZS {
+                encoded_data = b8zs_encoder(&binary_data);
+            }
+            else {
+               encoded_data = hdb3_encoder(&binary_data); 
+            }
+        }
+        else {
+            encoded_data = ami_encoder(&binary_data);
+        }
         let bit_length = width / encoded_data.len() as f32;
 
         for (i, &encoded_bit) in encoded_data.iter().enumerate() {

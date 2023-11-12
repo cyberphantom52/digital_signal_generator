@@ -1,5 +1,6 @@
 mod encoding;
 mod utils;
+mod scramble;
 
 use crate::encoding::*;
 use nannou::prelude::*;
@@ -124,13 +125,13 @@ fn view(app: &App, model: &Model, frame: Frame) {
     draw_grid(&draw, &win, 25.0, 0.5);
 
     match model.encoding {
-        Encodings::NRZI => NRZI.encode(&win, &model.binary_stream, &draw),
-        Encodings::NRZL => NRZL.encode(&win, &model.binary_stream, &draw),
-        Encodings::Manchester => Manchester.encode(&win, &model.binary_stream, &draw),
+        Encodings::NRZI => NRZI.encode(&model, &win, &draw),
+        Encodings::NRZL => NRZL.encode(&model, &win, &draw),
+        Encodings::Manchester => Manchester.encode(&model, &win, &draw),
         Encodings::ManchesterDifferential => {
-            ManchesterDifferential.encode(&win, &model.binary_stream, &draw)
+            ManchesterDifferential.encode(&model, &win, &draw)
         }
-        Encodings::AMI => AMI.encode(&win, &model.binary_stream, &draw),
+        Encodings::AMI => AMI.encode(&model, &win, &draw),
     }
 
     draw.to_frame(app, &frame).unwrap();
