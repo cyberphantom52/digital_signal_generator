@@ -1,4 +1,5 @@
-use crate::{Model, scramble::Scramble};
+use super::scramble::Scramble;
+use crate::Model;
 use nannou::prelude::{pt2, App, Draw, STEELBLUE};
 
 pub trait Encode {
@@ -7,12 +8,12 @@ pub trait Encode {
         let win = window.rect();
         let width = win.w();
 
-        let encoded = if model.encoding != Encoding::AMI {
-            self.encode(&model.binary_stream)
+        let encoded = if model.settings.digital.encoding != Encoding::AMI {
+            self.encode(&model.settings.digital.binary_stream)
         } else {
-            AMI.scramble(&model.binary_stream, model.scrambling)
+            AMI.scramble(&model.settings.digital.binary_stream, model.settings.digital.scrambling)
         };
-        
+
         let bit_length = width / encoded.len() as f32;
         let mut previous_end = pt2(win.left(), -0.0);
         for (i, &c) in encoded.iter().enumerate() {

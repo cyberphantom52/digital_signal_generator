@@ -1,5 +1,10 @@
+use nannou::prelude::{pt2, Rect, GRAY};
 use nannou::Draw;
-use nannou::prelude::{Rect, pt2, GRAY};
+
+use crate::analog::AnalogSignal;
+use crate::analog::modulation::Modulation;
+use crate::digital::encoding::Encoding;
+use crate::digital::scramble::Scrambling;
 
 #[derive(PartialEq)]
 pub enum SignalType {
@@ -7,12 +12,37 @@ pub enum SignalType {
     Digital,
 }
 
-#[derive(PartialEq)]
-pub enum AnalogSignal {
-    Sine,
-    SawTooth,
+pub struct Settings {
+    pub digital: DigitalSettings,
+    pub analog: AnalogSettings,
 }
 
+pub struct DigitalSettings {
+    pub binary_stream: String,
+    pub encoding: Encoding,
+    pub scrambling: Scrambling,
+}
+
+pub struct AnalogSettings {
+    pub analog_signal: AnalogSignal,
+    pub modulation: Modulation,
+}
+
+impl Settings {
+    pub fn new() -> Self {
+        Settings {
+            digital: DigitalSettings {
+                binary_stream: String::new(),
+                encoding: Encoding::NRZL,
+                scrambling: Scrambling::None,
+            },
+            analog: AnalogSettings {
+                analog_signal: AnalogSignal::Sine,
+                modulation: Modulation::PCM,
+            },
+        }
+    }
+}
 pub fn validate_input(input: &str) -> bool {
     input.chars().into_iter().all(|x| x == '0' || x == '1')
 }
