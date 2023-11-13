@@ -28,4 +28,8 @@ pub fn draw_ui(ui: &mut egui::Ui, settings: &mut AnalogSettings) {
             ui.selectable_value(&mut settings.modulation, Modulation::PCM, "PCM");
             ui.selectable_value(&mut settings.modulation, Modulation::DM, "DM");
         });
+
+    ui.add(egui::Slider::new(&mut settings.amplitude, 0.0..=400.0).text("Amplitude"));
+    ui.add(egui::Slider::new(&mut settings.frequency, 0.01..=1.0).text("Frequency"));
+    ui.add(egui::Slider::new(&mut settings.sampling_rate, 1..=3200).text("Sampling Rate"));
 }

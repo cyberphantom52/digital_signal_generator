@@ -26,6 +26,9 @@ pub struct DigitalSettings {
 pub struct AnalogSettings {
     pub analog_signal: AnalogSignal,
     pub modulation: Modulation,
+    pub amplitude: f32,
+    pub frequency: f32,
+    pub sampling_rate: u32,
 }
 
 impl Settings {
@@ -39,6 +42,9 @@ impl Settings {
             analog: AnalogSettings {
                 analog_signal: AnalogSignal::Sine,
                 modulation: Modulation::PCM,
+                amplitude: 100.0,
+                frequency: 1.0, 
+                sampling_rate: 3200,
             },
         }
     }
