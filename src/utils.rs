@@ -3,7 +3,7 @@ use nannou::Draw;
 
 use crate::analog::AnalogSignal;
 use crate::analog::modulation::Modulation;
-use crate::digital::encoding::Encoding;
+use crate::digital::encoding::*;
 use crate::digital::scramble::Scrambling;
 
 #[derive(PartialEq)]
@@ -19,7 +19,7 @@ pub struct Settings {
 
 pub struct DigitalSettings {
     pub binary_stream: String,
-    pub encoding: Encoding,
+    pub encoding: Box<dyn Encode>,
     pub scrambling: Scrambling,
 }
 
@@ -33,7 +33,7 @@ impl Settings {
         Settings {
             digital: DigitalSettings {
                 binary_stream: String::new(),
-                encoding: Encoding::NRZL,
+                encoding: Box::new(NRZL),
                 scrambling: Scrambling::None,
             },
             analog: AnalogSettings {

@@ -1,14 +1,16 @@
-use super::scramble::Scramble;
+use std::fmt::Debug;
+
 use crate::Model;
+use crate::digital::scramble::Scramble;
 use nannou::prelude::{pt2, App, Draw, STEELBLUE};
 
-pub trait Encode {
+pub trait Encode: Debug{
     fn draw_encoding(&self, model: &Model, app: &App, draw: &Draw) {
         let window = app.main_window();
         let win = window.rect();
         let width = win.w();
 
-        let encoded = if model.settings.digital.encoding != Encoding::AMI {
+        let encoded = if format!("{:?}", model.settings.digital.encoding) != "AMI" {
             self.encode(&model.settings.digital.binary_stream)
         } else {
             AMI.scramble(&model.settings.digital.binary_stream, model.settings.digital.scrambling)
@@ -40,19 +42,16 @@ pub trait Encode {
     fn encode(&self, data: &str) -> Vec<i8>;
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub enum Encoding {
-    NRZL,
-    NRZI,
-    Manchester,
-    ManchesterDifferential,
-    AMI,
-}
 
+#[derive(Debug)]
 pub struct NRZL;
+#[derive(Debug)]
 pub struct NRZI;
+#[derive(Debug)]
 pub struct Manchester;
+#[derive(Debug)]
 pub struct ManchesterDifferential;
+#[derive(Debug)]
 pub struct AMI;
 
 impl Encode for NRZL {

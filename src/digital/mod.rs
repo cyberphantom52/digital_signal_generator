@@ -1,7 +1,7 @@
 pub mod encoding;
 pub mod scramble;
 
-use super::{Encoding, Scrambling};
+use super::*;
 use crate::utils::DigitalSettings;
 use nannou_egui::egui;
 
@@ -15,26 +15,30 @@ pub fn draw_ui(ui: &mut egui::Ui, settings: &mut DigitalSettings) {
     ui.vertical(|ui| {
         ui.label("Encoding:");
         ui.add_space(5.0);
-        egui::ComboBox::from_label("")
+        egui::ComboBox::from_id_source(0)
             .selected_text(format!("{:?}", settings.encoding))
             .show_ui(ui, |ui| {
-                ui.selectable_value(&mut settings.encoding, Encoding::NRZL, "NRZ-L");
-                ui.selectable_value(&mut settings.encoding, Encoding::NRZI, "NRZ-I");
-                ui.selectable_value(&mut settings.encoding, Encoding::Manchester, "Manchester");
-                ui.selectable_value(
-                    &mut settings.encoding,
-                    Encoding::ManchesterDifferential,
-                    "Differential Manchester",
-                );
-                ui.selectable_value(&mut settings.encoding, Encoding::AMI, "AMI");
+                for encoding in vec!["NRZ-L", "NRZ-I", "Manchester", "Differential Manchester", "AMI"] {
+                    if ui.selectable_label(false, encoding).clicked() {
+                        settings.encoding = match encoding {
+                            "NRZ-L" => Box::new(NRZL),
+                            "NRZ-I" => Box::new(NRZI),
+                            "Manchester" => Box::new(Manchester),
+                            "Differential Manchester" => Box::new(ManchesterDifferential),
+                            "AMI" => Box::new(AMI),
+                            _ => unimplemented!(),
+                        };
+                    
+                    }
+                }
             });
     });
 
-    if settings.encoding == Encoding::AMI {
+    if format!("{:?}", settings.encoding) == "AMI" {
         ui.vertical(|ui| {
             ui.label("Scrambling:");
             ui.add_space(5.0);
-            egui::ComboBox::from_label(" ")
+            egui::ComboBox::from_id_source(1)
                 .selected_text(format!("{:?}", settings.scrambling))
                 .show_ui(ui, |ui| {
                     ui.selectable_value(&mut settings.scrambling, Scrambling::None, "None");

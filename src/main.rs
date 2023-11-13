@@ -2,7 +2,7 @@ mod analog;
 mod digital;
 mod utils;
 
-use crate::analog::{modulation::*, AnalogSignal};
+use crate::analog::modulation::*;
 use crate::digital::{encoding::*, scramble::*};
 use nannou::prelude::*;
 use nannou_egui::{self, egui, Egui};
@@ -77,15 +77,7 @@ fn view(app: &App, model: &Model, frame: Frame) {
     draw_grid(&draw, &win, 25.0, 0.5);
 
     if model.signal_type == SignalType::Digital {
-        match model.settings.digital.encoding {
-            Encoding::NRZI => NRZI.draw_encoding(&model, &app, &draw),
-            Encoding::NRZL => NRZL.draw_encoding(&model, &app, &draw),
-            Encoding::Manchester => Manchester.draw_encoding(&model, &app, &draw),
-            Encoding::ManchesterDifferential => {
-                ManchesterDifferential.draw_encoding(&model, &app, &draw)
-            }
-            Encoding::AMI => AMI.draw_encoding(&model, &app, &draw),
-        }
+        model.settings.digital.encoding.draw_encoding(model, &app, &draw)
     } else {
         match model.settings.analog.modulation {
             Modulation::PCM => PCM.draw_modulation(&model, &app, &draw),
