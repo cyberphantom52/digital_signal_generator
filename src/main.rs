@@ -1,20 +1,21 @@
-mod encoding;
+mod analog;
+mod digital;
 mod utils;
 
-use crate::encoding::*;
+use crate::analog::modulation::*;
+use crate::digital::{encoding::*, scramble::*};
 use nannou::prelude::*;
 use nannou_egui::{self, egui, Egui};
-use utils::draw_grid;
+use utils::{draw_grid, Settings, SignalType};
 
 fn main() {
     nannou::app(model).update(update).run();
 }
 
-struct Model {
+pub struct Model {
     ui: Egui,
-    binary_stream: String,
-    encoding: Encodings,
-    scrambling: bool,
+    signal_type: SignalType,
+    settings: Settings,
 }
 
 fn model(app: &App) -> Model {
@@ -33,9 +34,8 @@ fn model(app: &App) -> Model {
 
     Model {
         ui,
-        binary_stream: "0".to_string(),
-        encoding: Encodings::NRZI,
-        scrambling: false,
+        signal_type: SignalType::Digital,
+        settings: Settings::new(),
     }
 }
 
@@ -45,50 +45,26 @@ fn raw_ui_event(_app: &App, model: &mut Model, event: &nannou::winit::event::Win
 
 fn update(_app: &App, model: &mut Model, update: Update) {
     let egui = &mut model.ui;
-    
+
     egui.set_elapsed_time(update.since_start);
     let ctx = egui.begin_frame();
 
     egui::Window::new("Simulator Control Panel")
-    .collapsible(false)
-    .show(&ctx, |ui| {
-        ui.vertical(|ui| {
-            ui.label("Binary Message:");
-            ui.add_space(5.0);
-            ui.text_edit_singleline(&mut model.binary_stream);
-        });
-        
-        let current_encoding = model.encoding;
-        ui.vertical(|ui| {
-            ui.label("Encoding:");
-            ui.add_space(5.0);
-            egui::ComboBox::from_label("")
-            .selected_text(format!("{current_encoding:?}"))
-            .show_ui(ui, |ui| {
-                ui.selectable_value(&mut model.encoding, Encodings::NRZI, "NRZ-I");
-                ui.selectable_value(&mut model.encoding, Encodings::NRZL, "NRZ-L");
-                ui.selectable_value(
-                    &mut model.encoding,
-                    Encodings::Manchester,
-                    "Manchester",
-                );
-                ui.selectable_value(
-                    &mut model.encoding,
-                    Encodings::ManchesterDifferential,
-                    "Differential Manchester",
-                );
-                ui.selectable_value(&mut model.encoding, Encodings::AMI, "AMI");
+        .collapsible(false)
+        .show(&ctx, |ui| {
+            ui.horizontal(|ui| {
+                ui.selectable_value(&mut model.signal_type, SignalType::Digital, "Digital");
+                ui.selectable_value(&mut model.signal_type, SignalType::Analog, "Analog");
             });
-        });
-        
-        if model.encoding == Encodings::AMI {
-        ui.horizontal(|ui| {
-            ui.label("Scrambling:");
-            ui.checkbox(&mut model.scrambling, "");
-        });
-        }
 
-    });
+            if model.signal_type == SignalType::Digital {
+                let settings = &mut model.settings.digital;
+                crate::digital::draw_ui(ui, settings);
+            } else {
+                let settings = &mut model.settings.analog;
+                crate::analog::draw_ui(ui, settings);
+            }
+        });
 }
 
 fn view(app: &App, model: &Model, frame: Frame) {
@@ -96,20 +72,19 @@ fn view(app: &App, model: &Model, frame: Frame) {
     let window = app.main_window();
     let win = window.rect();
     draw.background().rgb(0.11, 0.12, 0.13);
-    
+
     draw_grid(&draw, &win, 100.0, 1.0);
     draw_grid(&draw, &win, 25.0, 0.5);
-    
-    match model.encoding {
-        Encodings::NRZI => NRZI.encode(&win, &model.binary_stream, &draw),
-        Encodings::NRZL => NRZL.encode(&win, &model.binary_stream, &draw),
-        Encodings::Manchester => Manchester.encode(&win, &model.binary_stream, &draw),
-        Encodings::ManchesterDifferential => ManchesterDifferential.encode(&win, &model.binary_stream, &draw),
-        Encodings::AMI => AMI.encode(&win, &model.binary_stream, &draw),
+
+    if model.signal_type == SignalType::Digital {
+        model.settings.digital.encoding.draw_encoding(model, &app, &draw)
+    } else {
+        match model.settings.analog.modulation {
+            Modulation::PCM => PCM.draw_modulation(&model, &app, &draw),
+            Modulation::DM => DM.draw_modulation(&model, &app, &draw),
+        }
     }
-    
+
     draw.to_frame(app, &frame).unwrap();
     model.ui.draw_to_frame(&frame).unwrap();
 }
-
-
