@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use nannou::prelude::{pt2, App, Draw, STEELBLUE};
-use crate::utils::DigitalSettings;
 use super::scramble::{Scrambling, Scramble};
+use super::DigitalSettings;
 
 pub trait Encode: Debug{
     fn draw_encoding(&self, encoded: &Vec<i8>, app: &App, draw: &Draw) {

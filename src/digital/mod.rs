@@ -2,8 +2,14 @@ pub mod encoding;
 pub mod scramble;
 
 use super::*;
-use crate::utils::DigitalSettings;
 use nannou_egui::egui;
+
+pub struct DigitalSettings {
+    pub binary_stream: String,
+    pub result: Vec<i8>,
+    pub encoding: Box<dyn Encode>,
+    pub scrambling: Scrambling,
+}
 
 pub fn draw_ui(ui: &mut egui::Ui, settings: &mut DigitalSettings) {
     ui.vertical(|ui| {

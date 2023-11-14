@@ -1,6 +1,6 @@
-use super::AnalogSignal;
-use crate::{utils::AnalogSettings, Model};
-use nannou::prelude::{pt2, App, Draw, PI, STEELBLUE, ORANGE};
+use super::{AnalogSettings, AnalogSignal};
+use crate::Model;
+use nannou::prelude::{pt2, App, Draw, ORANGE, PI, STEELBLUE};
 
 pub trait Modulate {
     fn draw_modulation(&self, model: &Model, app: &App, draw: &Draw) {
@@ -30,7 +30,7 @@ pub trait Modulate {
         draw.polyline()
             .weight(2.0)
             .points_colored(points.into_iter().map(|x| (x, STEELBLUE)));
-        
+
         let encoded = &settings.result;
         let bit_length = width / encoded.len() as f32;
         let mut previous_end = pt2(win.left(), -0.0);
@@ -48,16 +48,11 @@ pub trait Modulate {
                     .color(ORANGE);
             }
             previous_end = end;
-            draw.line()
-                .start(start)
-                .end(end)
-                .weight(1.0)
-                .color(ORANGE);
+            draw.line().start(start).end(end).weight(1.0).color(ORANGE);
         }
     }
 
-    fn modulate(&self, settings: &AnalogSettings, to: f32) -> Vec<i8>
-    {
+    fn modulate(&self, settings: &AnalogSettings, to: f32) -> Vec<i8> {
         Vec::new()
     }
 }
@@ -72,8 +67,7 @@ pub struct PCM;
 pub struct DM;
 
 impl Modulate for DM {
-    fn modulate(&self, settings: &AnalogSettings, to: f32) -> Vec<i8>
-    {
+    fn modulate(&self, settings: &AnalogSettings, to: f32) -> Vec<i8> {
         let signal: Box<dyn Fn(f32) -> f32> = match settings.analog_signal {
             AnalogSignal::Sine => {
                 Box::new(|x: f32| settings.amplitude * (2.0 * PI * settings.frequency * x).sin())

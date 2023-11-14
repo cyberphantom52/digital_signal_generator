@@ -12,6 +12,16 @@ pub enum AnalogSignal {
     SawTooth,
 }
 
+pub struct AnalogSettings {
+    pub analog_signal: AnalogSignal,
+    pub result: Vec<i8>,
+    pub modulation: Modulation,
+    pub amplitude: f32,
+    pub frequency: f32,
+    pub delta: f32,
+    pub sampling_rate: f32,
+}
+
 pub fn draw_ui(app: &App, ui: &mut egui::Ui, signal_type: &mut SignalType, s: &mut Settings) {
     let win = app.main_window().rect();
     let settings = &mut s.analog;

@@ -1,10 +1,6 @@
-use nannou::prelude::{pt2, Rect, GRAY};
-use nannou::Draw;
-
-use crate::analog::AnalogSignal;
-use crate::analog::modulation::Modulation;
-use crate::digital::encoding::*;
-use crate::digital::scramble::Scrambling;
+use crate::analog::{modulation::Modulation, AnalogSettings, AnalogSignal};
+use crate::digital::{encoding::*, scramble::Scrambling, DigitalSettings};
+use nannou::prelude::{pt2, Draw, Rect, GRAY};
 
 #[derive(PartialEq)]
 pub enum SignalType {
@@ -15,23 +11,6 @@ pub enum SignalType {
 pub struct Settings {
     pub digital: DigitalSettings,
     pub analog: AnalogSettings,
-}
-
-pub struct DigitalSettings {
-    pub binary_stream: String,
-    pub result: Vec<i8>,
-    pub encoding: Box<dyn Encode>,
-    pub scrambling: Scrambling,
-}
-
-pub struct AnalogSettings {
-    pub analog_signal: AnalogSignal,
-    pub result: Vec<i8>,
-    pub modulation: Modulation,
-    pub amplitude: f32,
-    pub frequency: f32,
-    pub delta: f32,
-    pub sampling_rate: f32,
 }
 
 impl Settings {
