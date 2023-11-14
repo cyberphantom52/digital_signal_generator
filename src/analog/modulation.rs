@@ -1,8 +1,10 @@
+use std::fmt::Debug;
+
 use super::{AnalogSettings, AnalogSignal};
 use crate::Model;
 use nannou::prelude::{pt2, App, Draw, ORANGE, PI, STEELBLUE};
 
-pub trait Modulate {
+pub trait Modulate: Debug {
     fn draw_modulation(&self, model: &Model, app: &App, draw: &Draw) {
         let window = app.main_window();
         let win = window.rect();
@@ -57,13 +59,9 @@ pub trait Modulate {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Modulation {
-    PCM,
-    DM,
-}
-
+#[derive(Debug)]
 pub struct PCM;
+#[derive(Debug)]
 pub struct DM;
 
 impl Modulate for DM {

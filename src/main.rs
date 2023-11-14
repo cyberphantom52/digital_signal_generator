@@ -78,10 +78,7 @@ fn view(app: &App, model: &Model, frame: Frame) {
     if model.signal_type == SignalType::Digital {
         model.settings.digital.encoding.draw_encoding(&model.settings.digital.result, &app, &draw)
     } else {
-        match model.settings.analog.modulation {
-            Modulation::PCM => PCM.draw_modulation(&model, &app, &draw),
-            Modulation::DM => DM.draw_modulation(&model, &app, &draw),
-        }
+        model.settings.analog.modulation.draw_modulation(&model, &app, &draw);
     }
 
     draw.to_frame(app, &frame).unwrap();

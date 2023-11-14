@@ -1,7 +1,6 @@
 pub mod modulation;
 
-use self::modulation::{Modulate, DM};
-use super::Modulation;
+use self::modulation::{Modulate, DM, PCM};
 use crate::utils::{Settings, SignalType};
 use nannou::prelude::App;
 use nannou_egui::egui;
@@ -15,7 +14,7 @@ pub enum AnalogSignal {
 pub struct AnalogSettings {
     pub analog_signal: AnalogSignal,
     pub result: Vec<i8>,
-    pub modulation: Modulation,
+    pub modulation: Box<dyn Modulate>,
     pub amplitude: f32,
     pub frequency: f32,
     pub delta: f32,
@@ -35,12 +34,15 @@ pub fn draw_ui(app: &App, ui: &mut egui::Ui, signal_type: &mut SignalType, s: &m
     });
 
     ui.add_space(5.0);
-    let current_modulation = settings.modulation;
     egui::ComboBox::from_id_source(3)
-        .selected_text(format!("{current_modulation:?}"))
+        .selected_text(format!("{:?}", settings.modulation))
         .show_ui(ui, |ui| {
-            ui.selectable_value(&mut settings.modulation, Modulation::PCM, "PCM");
-            ui.selectable_value(&mut settings.modulation, Modulation::DM, "DM");
+            if ui.selectable_label(false, "Delta Modulation").clicked() {
+                settings.modulation = Box::new(DM);
+            }
+            if ui.selectable_label(false, "Pulse Code Modulation").clicked() {
+                settings.modulation = Box::new(PCM);
+            }
         });
 
     ui.add(egui::Slider::new(&mut settings.amplitude, -400.0..=400.0).text("Amplitude"));
@@ -48,10 +50,7 @@ pub fn draw_ui(app: &App, ui: &mut egui::Ui, signal_type: &mut SignalType, s: &m
     ui.add(egui::Slider::new(&mut settings.delta, 1.0..=100.0).text("Delta"));
     ui.add(egui::Slider::new(&mut settings.sampling_rate, 0.01..=3.00).text("Sampling Rate"));
 
-    settings.result = match settings.modulation {
-        Modulation::DM => DM.modulate(settings, win.right() - win.left()),
-        Modulation::PCM => Vec::new(),
-    };
+    settings.result = settings.modulation.modulate(settings, win.right() - win.left());
 
     if ui.button("Encode").clicked() {
         s.digital.binary_stream = settings
