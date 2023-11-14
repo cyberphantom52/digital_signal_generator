@@ -2,7 +2,6 @@ mod analog;
 mod digital;
 mod utils;
 
-use crate::analog::modulation::*;
 use crate::digital::{encoding::*, scramble::*};
 use nannou::prelude::*;
 use nannou_egui::{self, egui, Egui};

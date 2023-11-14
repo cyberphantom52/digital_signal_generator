@@ -11,14 +11,18 @@ pub enum AnalogSignal {
     SawTooth,
 }
 
-pub struct AnalogSettings {
-    pub analog_signal: AnalogSignal,
-    pub result: Vec<i8>,
-    pub modulation: Box<dyn Modulate>,
+pub struct Parameters {
     pub amplitude: f32,
     pub frequency: f32,
     pub delta: f32,
     pub sampling_rate: f32,
+}
+
+pub struct AnalogSettings {
+    pub analog_signal: AnalogSignal,
+    pub result: Vec<i8>,
+    pub modulation: Box<dyn Modulate>,
+    pub parameters: Parameters,
 }
 
 pub fn draw_ui(app: &App, ui: &mut egui::Ui, signal_type: &mut SignalType, s: &mut Settings) {
@@ -45,10 +49,10 @@ pub fn draw_ui(app: &App, ui: &mut egui::Ui, signal_type: &mut SignalType, s: &m
             }
         });
 
-    ui.add(egui::Slider::new(&mut settings.amplitude, -400.0..=400.0).text("Amplitude"));
-    ui.add(egui::Slider::new(&mut settings.frequency, 0.001..=1.000).text("Frequency"));
-    ui.add(egui::Slider::new(&mut settings.delta, 1.0..=100.0).text("Delta"));
-    ui.add(egui::Slider::new(&mut settings.sampling_rate, 0.01..=3.00).text("Sampling Rate"));
+    ui.add(egui::Slider::new(&mut settings.parameters.amplitude, -400.0..=400.0).text("Amplitude"));
+    ui.add(egui::Slider::new(&mut settings.parameters.frequency, 0.001..=1.000).text("Frequency"));
+    ui.add(egui::Slider::new(&mut settings.parameters.delta, 1.0..=100.0).text("Delta"));
+    ui.add(egui::Slider::new(&mut settings.parameters.sampling_rate, 0.01..=3.00).text("Sampling Rate"));
 
     settings.result = settings.modulation.modulate(settings, win.right() - win.left());
 

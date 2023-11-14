@@ -8,11 +8,11 @@ pub trait Modulate: Debug {
     fn signal(&self, x: f32, settings: &AnalogSettings) -> f32 {
         let signal: Box<dyn Fn(f32) -> f32> = match settings.analog_signal {
             AnalogSignal::Sine => {
-                Box::new(|x: f32| settings.amplitude * (2.0 * PI * settings.frequency * x).sin())
+                Box::new(|x: f32| settings.parameters.amplitude * (2.0 * PI * settings.parameters.frequency * x).sin())
             }
             AnalogSignal::SawTooth => Box::new(|x: f32| {
-                let f = 2.0 * 100.0 * settings.frequency;
-                (settings.amplitude / f) * (x % f)
+                let f = 2.0 * 100.0 * settings.parameters.frequency;
+                (settings.parameters.amplitude / f) * (x % f)
             }),
         };
 
@@ -37,7 +37,7 @@ pub trait Modulate: Debug {
         let bit_length = width / encoded.len() as f32;
         let mut height = 0.0;
         let points = encoded.iter().enumerate().flat_map(|(i, &x)| {
-            height += x as f32 * settings.delta;
+            height += x as f32 * settings.parameters.delta;
             let start = pt2(win.left() + bit_length * i as f32, height);
             let end = pt2(win.left() + bit_length * (i + 1) as f32, height);
             [(start, ORANGE), (end, ORANGE)]
@@ -60,11 +60,11 @@ impl Modulate for DM {
     fn modulate(&self, settings: &AnalogSettings, to: f32) -> Vec<i8> {
         let mut result = Vec::new();
         let mut cursor = 0.0;
-        for iteraror in (0..).map(|i| i as f32 / settings.sampling_rate).take_while(|&x| x < to) {
+        for iteraror in (0..).map(|i| i as f32 / settings.parameters.sampling_rate).take_while(|&x| x < to) {
             let sample = self.signal(iteraror, settings);
             let bit = if sample > cursor { 1 } else { -1 };
             result.push(bit);
-            cursor += (bit as f32) * settings.delta;
+            cursor += (bit as f32) * settings.parameters.delta;
         }
         result
     }

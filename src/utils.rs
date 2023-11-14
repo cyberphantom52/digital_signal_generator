@@ -1,3 +1,4 @@
+use crate::analog::Parameters;
 use crate::analog::{modulation::DM, AnalogSettings, AnalogSignal};
 use crate::digital::{encoding::*, scramble::Scrambling, DigitalSettings};
 use nannou::prelude::{pt2, Draw, Rect, GRAY};
@@ -26,10 +27,12 @@ impl Settings {
                 analog_signal: AnalogSignal::Sine,
                 result: Vec::new(),
                 modulation: Box::new(DM),
-                amplitude: 100.0,
-                frequency: 0.00125,
-                delta: 1.0,
-                sampling_rate: 1.0,
+                parameters: Parameters {
+                    amplitude: 100.0,
+                    frequency: 0.00125,
+                    delta: 1.0,
+                    sampling_rate: 1.0,
+                },
             },
         }
     }
