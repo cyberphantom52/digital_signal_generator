@@ -1,4 +1,5 @@
-use crate::{Model, utils::AnalogSettings};
+use super::AnalogSignal;
+use crate::{utils::AnalogSettings, Model};
 use nannou::prelude::{pt2, App, Draw, PI, STEELBLUE};
 
 pub trait Modulate {
@@ -8,7 +9,15 @@ pub trait Modulate {
         let width = win.w();
         let settings = &model.settings.analog;
 
-        let signal = |x: f32| settings.amplitude * (2.0 * PI * settings.frequency * x).sin();
+        let signal: Box<dyn Fn(f32) -> f32> = match settings.analog_signal {
+            AnalogSignal::Sine => {
+                Box::new(|x: f32| settings.amplitude * (2.0 * PI * settings.frequency * x).sin())
+            }
+            AnalogSignal::SawTooth => Box::new(|x: f32| {
+                let f = 2.0 * 100.0 * settings.frequency;
+                (settings.amplitude / f) * (x % f)
+            }),
+        };
         let mut iterator = signal(0.0);
         let end = win.right() - win.left();
         while end > iterator {
@@ -65,7 +74,6 @@ impl Modulate for DM {
         F: Fn(f32) -> f32,
     {
         let mut result = Vec::new();
-        
         let mut cursor = signal(0.0);
         let mut iteraror = 0.0;
         while iteraror < to {

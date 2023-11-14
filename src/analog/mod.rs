@@ -30,7 +30,7 @@ pub fn draw_ui(ui: &mut egui::Ui, settings: &mut AnalogSettings) {
         });
 
     ui.add(egui::Slider::new(&mut settings.amplitude, -400.0..=400.0).text("Amplitude"));
-    ui.add(egui::Slider::new(&mut settings.frequency, 0.001..=0.030).text("Frequency"));
+    ui.add(egui::Slider::new(&mut settings.frequency, 0.001..=1.000).text("Frequency"));
     ui.add(egui::Slider::new(&mut settings.delta, 1.0..=100.0).text("Delta"));
     ui.add(egui::Slider::new(&mut settings.sampling_rate, 0.01..=3.00).text("Sampling Rate"));
 }
