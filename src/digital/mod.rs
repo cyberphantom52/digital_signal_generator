@@ -9,7 +9,7 @@ pub fn draw_ui(ui: &mut egui::Ui, settings: &mut DigitalSettings) {
     ui.vertical(|ui| {
         ui.label("Binary Message:");
         ui.add_space(5.0);
-        ui.text_edit_singleline(&mut settings.binary_stream);
+        ui.text_edit_singleline(&mut settings.binary_stream).changed();
     });
 
     ui.vertical(|ui| {
@@ -47,4 +47,5 @@ pub fn draw_ui(ui: &mut egui::Ui, settings: &mut DigitalSettings) {
                 });
         });
     }
+    settings.result = settings.encoding.encode(&settings);
 }

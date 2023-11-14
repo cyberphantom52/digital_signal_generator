@@ -19,12 +19,14 @@ pub struct Settings {
 
 pub struct DigitalSettings {
     pub binary_stream: String,
+    pub result: Vec<i8>,
     pub encoding: Box<dyn Encode>,
     pub scrambling: Scrambling,
 }
 
 pub struct AnalogSettings {
     pub analog_signal: AnalogSignal,
+    pub result: Vec<i8>,
     pub modulation: Modulation,
     pub amplitude: f32,
     pub frequency: f32,
@@ -37,11 +39,13 @@ impl Settings {
         Settings {
             digital: DigitalSettings {
                 binary_stream: String::new(),
+                result: Vec::new(),
                 encoding: Box::new(NRZL),
                 scrambling: Scrambling::None,
             },
             analog: AnalogSettings {
                 analog_signal: AnalogSignal::Sine,
+                result: Vec::new(),
                 modulation: Modulation::PCM,
                 amplitude: 100.0,
                 frequency: 0.00125,

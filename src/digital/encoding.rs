@@ -1,20 +1,13 @@
 use std::fmt::Debug;
-
-use crate::Model;
-use crate::digital::scramble::Scramble;
 use nannou::prelude::{pt2, App, Draw, STEELBLUE};
+use crate::utils::DigitalSettings;
+use super::scramble::{Scrambling, Scramble};
 
 pub trait Encode: Debug{
-    fn draw_encoding(&self, model: &Model, app: &App, draw: &Draw) {
+    fn draw_encoding(&self, encoded: &Vec<i8>, app: &App, draw: &Draw) {
         let window = app.main_window();
         let win = window.rect();
         let width = win.w();
-
-        let encoded = if format!("{:?}", model.settings.digital.encoding) != "AMI" {
-            self.encode(&model.settings.digital.binary_stream)
-        } else {
-            AMI.scramble(&model.settings.digital.binary_stream, model.settings.digital.scrambling)
-        };
 
         let bit_length = width / encoded.len() as f32;
         let mut previous_end = pt2(win.left(), -0.0);
@@ -39,7 +32,7 @@ pub trait Encode: Debug{
         }
     }
 
-    fn encode(&self, data: &str) -> Vec<i8>;
+    fn encode(&self, settings: &DigitalSettings) -> Vec<i8>;
 }
 
 
@@ -55,7 +48,8 @@ pub struct ManchesterDifferential;
 pub struct AMI;
 
 impl Encode for NRZL {
-    fn encode(&self, data: &str) -> Vec<i8> {
+    fn encode(&self, settings: &DigitalSettings) -> Vec<i8> {
+        let data = &settings.binary_stream;
         let mut result = Vec::new();
         for char in data.chars().into_iter() {
             result.push(
@@ -69,7 +63,8 @@ impl Encode for NRZL {
 }
 
 impl Encode for NRZI {
-    fn encode(&self, data: &str) -> Vec<i8> {
+    fn encode(&self, settings: &DigitalSettings) -> Vec<i8> {
+        let data = &settings.binary_stream;
         let mut encoded_data = Vec::new();
         let mut state = 0;
         for bit in data.chars().into_iter() {
@@ -84,7 +79,8 @@ impl Encode for NRZI {
 }
 
 impl Encode for Manchester {
-    fn encode(&self, data: &str) -> Vec<i8> {
+    fn encode(&self, settings: &DigitalSettings) -> Vec<i8> {
+        let data = &settings.binary_stream;
         let mut encoded_data = Vec::new();
         for bit in data.chars().into_iter() {
             let mut seq = vec![];
@@ -100,7 +96,8 @@ impl Encode for Manchester {
 }
 
 impl Encode for ManchesterDifferential {
-    fn encode(&self, data: &str) -> Vec<i8> {
+    fn encode(&self, settings: &DigitalSettings) -> Vec<i8> {
+        let data = &settings.binary_stream;
         let mut encoded_data = Vec::new();
         let mut prev = 1;
         for bit in data.chars().into_iter() {
@@ -123,7 +120,11 @@ impl Encode for ManchesterDifferential {
 }
 
 impl Encode for AMI {
-    fn encode(&self, data: &str) -> Vec<i8> {
+    fn encode(&self, settings: &DigitalSettings) -> Vec<i8> {
+        let data = &settings.binary_stream;
+        if settings.scrambling != Scrambling::None {
+            return self.scramble(data, settings.scrambling);
+        }
         let mut encoded_data = Vec::new();
         let mut toggle = 1;
         for bit in data.chars().into_iter() {

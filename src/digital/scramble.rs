@@ -14,15 +14,9 @@ pub enum Scrambling {
 impl Scramble for AMI {
     fn scramble(&self, data: &str, scheme: Scrambling) -> Vec<i8> {
         match scheme {
-            Scrambling::None => {
-                return self.encode(data);
-            }
-            Scrambling::B8ZS => {
-                return b8zs(data);
-            }
-            Scrambling::HDB3 => {
-                return hdb3(data);
-            }
+            Scrambling::B8ZS => b8zs(data),
+            Scrambling::HDB3 => hdb3(data),
+            Scrambling::None => unreachable!()
         }
     }
 }
