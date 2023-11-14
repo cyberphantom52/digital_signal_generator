@@ -5,12 +5,7 @@ use crate::Model;
 use nannou::prelude::{pt2, App, Draw, ORANGE, PI, STEELBLUE};
 
 pub trait Modulate: Debug {
-    fn draw_modulation(&self, model: &Model, app: &App, draw: &Draw) {
-        let window = app.main_window();
-        let win = window.rect();
-        let width = win.w();
-        let settings = &model.settings.analog;
-
+    fn signal(&self, x: f32, settings: &AnalogSettings) -> f32 {
         let signal: Box<dyn Fn(f32) -> f32> = match settings.analog_signal {
             AnalogSignal::Sine => {
                 Box::new(|x: f32| settings.amplitude * (2.0 * PI * settings.frequency * x).sin())
@@ -21,37 +16,34 @@ pub trait Modulate: Debug {
             }),
         };
 
+        signal(x)
+    }
+
+    fn draw_modulation(&self, model: &Model, app: &App, draw: &Draw) {
+        let window = app.main_window();
+        let win = window.rect();
+        let width = win.w();
+        let settings = &model.settings.analog;
+
         /*Draw the signal*/
-        let mut x = signal(0.0);
         let end = win.right() - win.left();
         let mut points = Vec::with_capacity((2.0 * end) as usize);
-        while end > x {
-            points.push(pt2(win.left() + x, signal(x)));
-            x += 0.5;
+        for x in (0..).map(|x| x as f32 / 0.5).take_while(|&x| x < end) {
+            points.push((pt2(win.left() + x, self.signal(x, settings)), STEELBLUE));
         }
-        draw.polyline()
-            .weight(2.0)
-            .points_colored(points.into_iter().map(|x| (x, STEELBLUE)));
+        draw.polyline().weight(2.0).points_colored(points);
 
         let encoded = &settings.result;
         let bit_length = width / encoded.len() as f32;
-        let mut previous_end = pt2(win.left(), -0.0);
         let mut height = 0.0;
-        for (i, &c) in encoded.iter().enumerate() {
-            height += c as f32 * settings.delta;
+        let points = encoded.iter().enumerate().flat_map(|(i, &x)| {
+            height += x as f32 * settings.delta;
             let start = pt2(win.left() + bit_length * i as f32, height);
             let end = pt2(win.left() + bit_length * (i + 1) as f32, height);
+            [(start, ORANGE), (end, ORANGE)]
+        });
 
-            if previous_end != start {
-                draw.line()
-                    .start(previous_end)
-                    .end(start)
-                    .weight(1.0)
-                    .color(ORANGE);
-            }
-            previous_end = end;
-            draw.line().start(start).end(end).weight(1.0).color(ORANGE);
-        }
+        draw.polyline().weight(1.0).points_colored(points);
     }
 
     fn modulate(&self, settings: &AnalogSettings, to: f32) -> Vec<i8> {
@@ -66,30 +58,16 @@ pub struct DM;
 
 impl Modulate for DM {
     fn modulate(&self, settings: &AnalogSettings, to: f32) -> Vec<i8> {
-        let signal: Box<dyn Fn(f32) -> f32> = match settings.analog_signal {
-            AnalogSignal::Sine => {
-                Box::new(|x: f32| settings.amplitude * (2.0 * PI * settings.frequency * x).sin())
-            }
-            AnalogSignal::SawTooth => Box::new(|x: f32| {
-                let f = 2.0 * 100.0 * settings.frequency;
-                (settings.amplitude / f) * (x % f)
-            }),
-        };
         let mut result = Vec::new();
-        let mut cursor = signal(0.0);
-        let mut iteraror = 0.0;
-        while iteraror < to {
-            let sample = signal(iteraror);
-            if sample > cursor {
-                result.push(1);
-                cursor += settings.delta;
-            } else {
-                result.push(-1);
-                cursor -= settings.delta;
-            }
-            iteraror += 1.0 / settings.sampling_rate;
+        let mut cursor = 0.0;
+        for iteraror in (0..).map(|i| i as f32 / settings.sampling_rate).take_while(|&x| x < to) {
+            let sample = self.signal(iteraror, settings);
+            let bit = if sample > cursor { 1 } else { -1 };
+            result.push(bit);
+            cursor += (bit as f32) * settings.delta;
         }
         result
     }
 }
+
 impl Modulate for PCM {}
