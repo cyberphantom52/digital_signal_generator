@@ -1,6 +1,6 @@
 use super::AnalogSignal;
 use crate::{utils::AnalogSettings, Model};
-use nannou::prelude::{pt2, App, Draw, PI, STEELBLUE};
+use nannou::prelude::{pt2, App, Draw, PI, STEELBLUE, ORANGE};
 
 pub trait Modulate {
     fn draw_modulation(&self, model: &Model, app: &App, draw: &Draw) {
@@ -18,15 +18,20 @@ pub trait Modulate {
                 (settings.amplitude / f) * (x % f)
             }),
         };
-        let mut iterator = signal(0.0);
-        let end = win.right() - win.left();
-        while end > iterator {
-            let point = pt2(win.left() + iterator, signal(iterator));
-            iterator += 0.5;
-            draw.ellipse().color(STEELBLUE).xy(point).w_h(2.0, 2.0);
-        }
 
-        let encoded = self.modulate(signal, settings, win.right() - win.left());
+        /*Draw the signal*/
+        let mut x = signal(0.0);
+        let end = win.right() - win.left();
+        let mut points = Vec::with_capacity((2.0 * end) as usize);
+        while end > x {
+            points.push(pt2(win.left() + x, signal(x)));
+            x += 0.5;
+        }
+        draw.polyline()
+            .weight(2.0)
+            .points_colored(points.into_iter().map(|x| (x, STEELBLUE)));
+        
+        let encoded = &settings.result;
         let bit_length = width / encoded.len() as f32;
         let mut previous_end = pt2(win.left(), -0.0);
         let mut height = 0.0;
@@ -39,21 +44,19 @@ pub trait Modulate {
                 draw.line()
                     .start(previous_end)
                     .end(start)
-                    .weight(4.0)
-                    .color(STEELBLUE);
+                    .weight(1.0)
+                    .color(ORANGE);
             }
             previous_end = end;
             draw.line()
                 .start(start)
                 .end(end)
-                .weight(4.0)
-                .color(STEELBLUE);
+                .weight(1.0)
+                .color(ORANGE);
         }
     }
 
-    fn modulate<F>(&self, signal: F, settings: &AnalogSettings, to: f32) -> Vec<i8>
-    where
-        F: Fn(f32) -> f32,
+    fn modulate(&self, settings: &AnalogSettings, to: f32) -> Vec<i8>
     {
         Vec::new()
     }
@@ -69,10 +72,17 @@ pub struct PCM;
 pub struct DM;
 
 impl Modulate for DM {
-    fn modulate<F>(&self, signal: F, settings: &AnalogSettings, to: f32) -> Vec<i8>
-    where
-        F: Fn(f32) -> f32,
+    fn modulate(&self, settings: &AnalogSettings, to: f32) -> Vec<i8>
     {
+        let signal: Box<dyn Fn(f32) -> f32> = match settings.analog_signal {
+            AnalogSignal::Sine => {
+                Box::new(|x: f32| settings.amplitude * (2.0 * PI * settings.frequency * x).sin())
+            }
+            AnalogSignal::SawTooth => Box::new(|x: f32| {
+                let f = 2.0 * 100.0 * settings.frequency;
+                (settings.amplitude / f) * (x % f)
+            }),
+        };
         let mut result = Vec::new();
         let mut cursor = signal(0.0);
         let mut iteraror = 0.0;

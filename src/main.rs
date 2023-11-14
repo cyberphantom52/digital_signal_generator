@@ -43,7 +43,7 @@ fn raw_ui_event(_app: &App, model: &mut Model, event: &nannou::winit::event::Win
     model.ui.handle_raw_event(event);
 }
 
-fn update(_app: &App, model: &mut Model, update: Update) {
+fn update(app: &App, model: &mut Model, update: Update) {
     let egui = &mut model.ui;
 
     egui.set_elapsed_time(update.since_start);
@@ -61,8 +61,7 @@ fn update(_app: &App, model: &mut Model, update: Update) {
                 let settings = &mut model.settings.digital;
                 crate::digital::draw_ui(ui, settings);
             } else {
-                let settings = &mut model.settings.analog;
-                crate::analog::draw_ui(ui, settings);
+                crate::analog::draw_ui(app, ui, &mut model.signal_type, &mut model.settings);
             }
         });
 }

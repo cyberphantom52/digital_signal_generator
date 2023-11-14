@@ -1,4 +1,4 @@
-use super::encoding::{Encode, AMI};
+use super::encoding::AMI;
 
 pub trait Scramble {
     fn scramble(&self, data: &str, scheme: Scrambling) -> Vec<i8>;
