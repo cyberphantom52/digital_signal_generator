@@ -28,7 +28,8 @@ pub struct AnalogSettings {
     pub modulation: Modulation,
     pub amplitude: f32,
     pub frequency: f32,
-    pub sampling_rate: u32,
+    pub delta: f32,
+    pub sampling_rate: f32,
 }
 
 impl Settings {
@@ -43,12 +44,14 @@ impl Settings {
                 analog_signal: AnalogSignal::Sine,
                 modulation: Modulation::PCM,
                 amplitude: 100.0,
-                frequency: 1.0, 
-                sampling_rate: 3200,
+                frequency: 0.00125,
+                delta: 1.0,
+                sampling_rate: 1.0,
             },
         }
     }
 }
+
 pub fn validate_input(input: &str) -> bool {
     input.chars().into_iter().all(|x| x == '0' || x == '1')
 }
