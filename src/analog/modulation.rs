@@ -46,7 +46,11 @@ pub trait Modulate: Debug {
         let bit_length = width / encoded.len() as f32;
         let mut height = 0.0;
         let points = encoded.iter().enumerate().flat_map(|(i, &x)| {
-            height += x as f32 * settings.parameters.delta;
+            if format!("{:?}", settings.modulation) == "PCM" {
+                height = x as f32 * 50.0;
+            } else {
+                height += x as f32 * settings.parameters.delta;
+            }
             let start = pt2(win.left() + bit_length * i as f32, height);
             let end = pt2(win.left() + bit_length * (i + 1) as f32, height);
             [(start, ORANGE), (end, ORANGE)]
@@ -66,7 +70,7 @@ pub struct DM;
 impl PCM {
     fn nearest_pow_of_two(&self, n: f32) -> i32 {
         // Ref: https://graphics.stanford.edu/%7Eseander/bithacks.html#RoundUpPowerOf2
-        let flag = if n >= 0.0 { 1 } else { -1 };
+        let sign = if n >= 0.0 { 1 } else { -1 };
         let mut i = n.abs() as i32;
         i += (i == 0) as i32;
         i -= 1;
@@ -78,9 +82,9 @@ impl PCM {
         i += 1;
         let p = i >> 1;
         if n - p as f32 > i as f32 - n {
-            flag * i
+            sign * i
         } else {
-            flag * p
+            sign * p
         }
     }
 }
@@ -104,16 +108,16 @@ impl Modulate for DM {
 impl Modulate for PCM {
     fn modulate(&self, settings: &AnalogSettings, to: f32) -> Vec<i8> {
         let mut result = Vec::new();
-        //assume 8 bits;
-        let max_level = 2i32.pow(8);
+
+        let max_level = 256; // assming 8 bits
         for iteraror in (0..)
             .map(|i| i as f32 / settings.parameters.sampling_rate)
             .take_while(|&x| x < to)
         {
             let sample = self.signal(iteraror, settings);
             let mut i = self.nearest_pow_of_two(sample);
-            if i.abs() > max_level {
-                i = (i / i.abs()) * max_level;
+            if i.abs() + 128 > max_level {
+                i = ((i / i.abs()) * 128) + 128;
             }
             format!("{:08b}", i)
                 .chars()
