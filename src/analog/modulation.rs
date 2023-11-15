@@ -16,6 +16,10 @@ pub trait Modulate: Debug {
             AnalogSignal::Square => Box::new(|x: f32| {
                 -(x % (1.0 / settings.parameters.frequency) - 0.5 / settings.parameters.frequency).signum() * settings.parameters.amplitude
             }),
+            AnalogSignal::Sinc => Box::new(|x: f32| {
+                let i = 2.0 * PI * settings.parameters.frequency * (x - 400.0); // shift by 400 to show more of the sinc function
+                settings.parameters.amplitude * (i).sin() / i
+            }),
         };
 
         signal(x)

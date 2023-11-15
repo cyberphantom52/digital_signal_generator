@@ -10,6 +10,7 @@ pub enum AnalogSignal {
     Sine,
     SawTooth,
     Square,
+    Sinc,
 }
 
 pub struct Parameters {
@@ -37,6 +38,7 @@ pub fn draw_ui(app: &App, ui: &mut egui::Ui, signal_type: &mut SignalType, s: &m
             "Saw Tooth",
         );
         ui.radio_value(&mut settings.analog_signal, AnalogSignal::Square, "Square Wave");
+        ui.radio_value(&mut settings.analog_signal, AnalogSignal::Sinc, "Sinc(x)");
     });
 
     ui.add_space(5.0);
