@@ -9,6 +9,7 @@ use nannou_egui::egui;
 pub enum AnalogSignal {
     Sine,
     SawTooth,
+    Square,
 }
 
 pub struct Parameters {
@@ -35,6 +36,7 @@ pub fn draw_ui(app: &App, ui: &mut egui::Ui, signal_type: &mut SignalType, s: &m
             AnalogSignal::SawTooth,
             "Saw Tooth",
         );
+        ui.radio_value(&mut settings.analog_signal, AnalogSignal::Square, "Square Wave");
     });
 
     ui.add_space(5.0);

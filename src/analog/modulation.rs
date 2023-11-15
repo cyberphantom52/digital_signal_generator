@@ -13,6 +13,9 @@ pub trait Modulate: Debug {
             AnalogSignal::SawTooth => Box::new(|x: f32| {
                 (settings.parameters.frequency * settings.parameters.amplitude) * (x % (1.0 / settings.parameters.frequency))
             }),
+            AnalogSignal::Square => Box::new(|x: f32| {
+                -(x % (1.0 / settings.parameters.frequency) - 0.5 / settings.parameters.frequency).signum() * settings.parameters.amplitude
+            }),
         };
 
         signal(x)
