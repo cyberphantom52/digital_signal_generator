@@ -50,7 +50,7 @@ pub fn draw_ui(app: &App, ui: &mut egui::Ui, signal_type: &mut SignalType, s: &m
         });
 
     ui.add(egui::Slider::new(&mut settings.parameters.amplitude, -400.0..=400.0).text("Amplitude"));
-    ui.add(egui::Slider::new(&mut settings.parameters.frequency, 0.001..=1.000).text("Frequency"));
+    ui.add(egui::Slider::new(&mut settings.parameters.frequency, 0.001..=0.010).text("Frequency"));
     ui.add(egui::Slider::new(&mut settings.parameters.delta, 1.0..=100.0).text("Delta"));
     ui.add(egui::Slider::new(&mut settings.parameters.sampling_rate, 0.01..=3.00).text("Sampling Rate"));
 
