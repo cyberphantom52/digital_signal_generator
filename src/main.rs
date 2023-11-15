@@ -2,7 +2,6 @@ mod analog;
 mod digital;
 mod utils;
 
-use crate::analog::modulation::*;
 use crate::digital::{encoding::*, scramble::*};
 use nannou::prelude::*;
 use nannou_egui::{self, egui, Egui};
@@ -43,7 +42,7 @@ fn raw_ui_event(_app: &App, model: &mut Model, event: &nannou::winit::event::Win
     model.ui.handle_raw_event(event);
 }
 
-fn update(_app: &App, model: &mut Model, update: Update) {
+fn update(app: &App, model: &mut Model, update: Update) {
     let egui = &mut model.ui;
 
     egui.set_elapsed_time(update.since_start);
@@ -61,8 +60,7 @@ fn update(_app: &App, model: &mut Model, update: Update) {
                 let settings = &mut model.settings.digital;
                 crate::digital::draw_ui(ui, settings);
             } else {
-                let settings = &mut model.settings.analog;
-                crate::analog::draw_ui(ui, settings);
+                crate::analog::draw_ui(app, ui, &mut model.signal_type, &mut model.settings);
             }
         });
 }
@@ -77,12 +75,9 @@ fn view(app: &App, model: &Model, frame: Frame) {
     draw_grid(&draw, &win, 25.0, 0.5);
 
     if model.signal_type == SignalType::Digital {
-        model.settings.digital.encoding.draw_encoding(model, &app, &draw)
+        model.settings.digital.encoding.draw_encoding(&model.settings.digital.result, &app, &draw)
     } else {
-        match model.settings.analog.modulation {
-            Modulation::PCM => PCM.draw_modulation(&model, &app, &draw),
-            Modulation::DM => DM.draw_modulation(&model, &app, &draw),
-        }
+        model.settings.analog.modulation.draw_modulation(&model, &app, &draw);
     }
 
     draw.to_frame(app, &frame).unwrap();

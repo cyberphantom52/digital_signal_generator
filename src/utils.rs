@@ -1,10 +1,7 @@
-use nannou::prelude::{pt2, Rect, GRAY};
-use nannou::Draw;
-
-use crate::analog::AnalogSignal;
-use crate::analog::modulation::Modulation;
-use crate::digital::encoding::*;
-use crate::digital::scramble::Scrambling;
+use crate::analog::Parameters;
+use crate::analog::{modulation::DM, AnalogSettings, AnalogSignal};
+use crate::digital::{encoding::*, scramble::Scrambling, DigitalSettings};
+use nannou::prelude::{pt2, Draw, Rect, GRAY};
 
 #[derive(PartialEq)]
 pub enum SignalType {
@@ -17,33 +14,31 @@ pub struct Settings {
     pub analog: AnalogSettings,
 }
 
-pub struct DigitalSettings {
-    pub binary_stream: String,
-    pub encoding: Box<dyn Encode>,
-    pub scrambling: Scrambling,
-}
-
-pub struct AnalogSettings {
-    pub analog_signal: AnalogSignal,
-    pub modulation: Modulation,
-}
-
 impl Settings {
     pub fn new() -> Self {
         Settings {
             digital: DigitalSettings {
                 binary_stream: String::new(),
+                result: Vec::new(),
                 encoding: Box::new(NRZL),
                 scrambling: Scrambling::None,
             },
             analog: AnalogSettings {
                 analog_signal: AnalogSignal::Sine,
-                modulation: Modulation::PCM,
+                result: Vec::new(),
+                modulation: Box::new(DM),
+                parameters: Parameters {
+                    amplitude: 100.0,
+                    frequency: 0.00125,
+                    delta: 1.0,
+                    sampling_rate: 1.0,
+                },
             },
         }
     }
 }
-pub fn validate_input(input: &str) -> bool {
+
+pub fn _validate_input(input: &str) -> bool {
     input.chars().into_iter().all(|x| x == '0' || x == '1')
 }
 
