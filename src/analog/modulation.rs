@@ -34,7 +34,7 @@ pub trait Modulate: Debug {
         /*Draw the signal*/
         let end = win.right() - win.left();
         let mut points = Vec::with_capacity((2.0 * end) as usize);
-        for x in (0..).map(|x| x as f32 / 0.5).take_while(|&x| x < end) {
+        for x in (0..).map(|x| x as f32).take_while(|&x| x < end) {
             points.push((pt2(win.left() + x, self.signal(x, settings)), STEELBLUE));
         }
         draw.polyline().weight(2.0).points_colored(points);
