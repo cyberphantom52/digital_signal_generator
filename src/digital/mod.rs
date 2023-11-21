@@ -16,7 +16,16 @@ pub fn draw_ui(ui: &mut egui::Ui, settings: &mut DigitalSettings) {
     ui.vertical(|ui| {
         ui.label("Binary Message:");
         ui.add_space(5.0);
-        ui.text_edit_singleline(&mut settings.binary_stream).changed();
+        if ui.text_edit_singleline(&mut settings.binary_stream).has_focus() {
+            if crate::utils::validate_input(&settings.binary_stream) {
+                settings.result = settings.encoding.encode(&settings);
+                if settings.binary_stream.len() > 1 {
+                    settings.longest_palindrome = crate::utils::longest_palindrome(settings.binary_stream.clone());
+                }
+            } else {
+                ui.label("Invalid input");
+            }
+        }
     });
 
     ui.vertical(|ui| {
@@ -60,9 +69,4 @@ pub fn draw_ui(ui: &mut egui::Ui, settings: &mut DigitalSettings) {
         ui.add_space(5.0);
         ui.text_edit_singleline(&mut settings.longest_palindrome).changed();
     });
-
-    settings.result = settings.encoding.encode(&settings);
-    if settings.binary_stream.len() > 1 {
-        settings.longest_palindrome = crate::utils::longest_palindrome(settings.binary_stream.clone());
-    }
 }

@@ -39,7 +39,7 @@ impl Settings {
     }
 }
 
-pub fn _validate_input(input: &str) -> bool {
+pub fn validate_input(input: &str) -> bool {
     input.chars().into_iter().all(|x| x == '0' || x == '1')
 }
 
