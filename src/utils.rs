@@ -19,6 +19,7 @@ impl Settings {
         Settings {
             digital: DigitalSettings {
                 binary_stream: String::new(),
+                longest_palindrome: String::new(),
                 result: Vec::new(),
                 encoding: Box::new(NRZL),
                 scrambling: Scrambling::None,
@@ -62,4 +63,50 @@ pub fn draw_grid(draw: &Draw, win: &Rect, step: f32, weight: f32) {
             .points(pt2(win.left(), y), pt2(win.right(), y))
             .color(GRAY);
     }
+}
+
+pub fn longest_palindrome(s: String) -> String {
+    let n = s.len();
+
+    let s: Vec<u8> = "^"
+        .bytes()
+        .chain(s.into_bytes())
+        .flat_map(|u| [u, b'#'])
+        .chain("$".bytes())
+        .collect();
+
+    let mut center = 2;
+    let mut right = 3;
+    let mut p = vec![0; 2 * n + 1];
+    p[2] = 1;
+    let mut max_p = 1;
+    let mut max_p_index = 2;
+
+    for i in 3..=2 * n {
+        if i < right {
+            let i_mirror = 2 * center - i;
+            p[i] = p[i_mirror].min(right - i);
+        }
+
+        while s[i + p[i] + 1] == s[i - p[i] - 1] {
+            p[i] += 1;
+        }
+
+        if i + p[i] > right {
+            center = i;
+            right = i + p[i];
+        }
+
+        if p[i] > max_p {
+            max_p = p[i];
+            max_p_index = i;
+        }
+    }
+
+    s.into_iter()
+        .skip(max_p_index - max_p + 1)
+        .take(2 * max_p - 1)
+        .filter(|u| *u != b'#')
+        .map(|u| u as char)
+        .collect()
 }

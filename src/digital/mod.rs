@@ -6,6 +6,7 @@ use nannou_egui::egui;
 
 pub struct DigitalSettings {
     pub binary_stream: String,
+    pub longest_palindrome: String,
     pub result: Vec<i8>,
     pub encoding: Box<dyn Encode>,
     pub scrambling: Scrambling,
@@ -53,5 +54,15 @@ pub fn draw_ui(ui: &mut egui::Ui, settings: &mut DigitalSettings) {
                 });
         });
     }
+
+    ui.vertical(|ui| {
+        ui.label("Longest Palindrome:");
+        ui.add_space(5.0);
+        ui.text_edit_singleline(&mut settings.longest_palindrome).changed();
+    });
+
     settings.result = settings.encoding.encode(&settings);
+    if settings.binary_stream.len() > 1 {
+        settings.longest_palindrome = crate::utils::longest_palindrome(settings.binary_stream.clone());
+    }
 }
